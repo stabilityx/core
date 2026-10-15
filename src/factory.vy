@@ -8,33 +8,52 @@
 """
 
 from ethereum.ercs import IERC20
-
-
 from interfaces import IOracle
-
-
 from . import stable
-
-
 from snekmate.auth import ownable as ow
-initializes: ow
-
-
 from snekmate.auth import ownable_2step as ow2
+
+
+initializes: ow
 initializes: ow2[ownable := ow]
 exports: ow2.__interface__
 
 
+# @dev Stores the address of the `stable` blueprint
+# used to deploy new stablecoins.
 STABLE_BLUEPRINT: immutable(address)
+
+
+# @dev Stores the address of the `engine` blueprint
+# used to deploy new stability engines.
 ENGINE_BLUEPRINT: immutable(address)
 
 
+# @dev Returns the stablecoin `address` controlled by
+# an engine `address` deployed by this factory. This
+# is the zero address for unknown engines.
 engine_to_stable: public(HashMap[address, address])
+
+
+# @dev Returns the engine `address` that owns a
+# stablecoin `address` deployed by this factory. This
+# is the zero address for unknown stablecoins.
 stable_to_engine: public(HashMap[address, address])
+
+
+# @dev Returns the engine `address` at a given
+# deployment index, starting at zero.
 engines: public(HashMap[uint256, address])
+
+
+# @dev Returns the number of engines deployed by
+# this factory. Valid indices into `engines` are
+# in the range `[0, engine_count)`.
 engine_count: public(uint256)
 
 
+# @dev Emitted when a new `engine` and its paired
+# `stablecoin` are deployed via `deploy`.
 event EngineDeployed:
     engine: indexed(address)
     stablecoin: indexed(address)
@@ -76,10 +95,13 @@ def deploy(
     decimals: uint8,
     oracle: IOracle,
     min_collat_ratio: uint256,
+    max_oracle_delay: uint256,
+    min_debt: uint256,
 ) -> (address, address):
     ow._check_owner()
     assert collateral.address != empty(address)  # dev: factory: collateral is the zero address
     assert oracle.address != empty(address)  # dev: factory: oracle is the zero address
+    assert decimals <= 18  # dev: factory: stablecoin decimals exceed 18
 
     stable_addr: address = create_from_blueprint(
         STABLE_BLUEPRINT,
@@ -94,6 +116,8 @@ def deploy(
         stable_addr,
         oracle,
         min_collat_ratio,
+        max_oracle_delay,
+        min_debt,
         code_offset=3,
     )
 

@@ -8,5 +8,17 @@
 
 @external
 @view
+def decimals() -> uint8:
+    ...
+
+
+@external
+@view
 def latest_answer() -> uint256:
+    ...
+
+
+@external
+@view
+def latest_timestamp() -> uint256:
     ...
