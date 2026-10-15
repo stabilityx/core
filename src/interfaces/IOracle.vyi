@@ -1,0 +1,12 @@
+# pragma version ~=0.4.3
+"""
+@title Oracle Interface Definition
+@custom:contract-name IOracle
+@license GNU Affero General Public License v3.0 only
+@author rafael-abuawad
+"""
+
+@external
+@view
+def latest_answer() -> uint256:
+    ...
