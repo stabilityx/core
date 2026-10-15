@@ -13,7 +13,8 @@ from interfaces import IOracle
 from . import stable
 
 PRECISION: constant(uint256) = 10**18
-MIN_COLLAT_RATIO: public(constant(uint256)) = 15 * 10**17
+MIN_COLLAT_RATIO_LOWER_BOUND: constant(uint256) = 135 * 10**16
+MIN_COLLAT_RATIO_UPPER_BOUND: constant(uint256) = 200 * 10**16
 LIQUIDATION_BONUS: public(constant(uint256)) = 10**17
 
 COLLATERAL: immutable(IERC20)
@@ -21,6 +22,7 @@ COLLATERAL_DECIMALS: immutable(uint8)
 COLLATERAL_SCALE: immutable(uint256)
 STABLECOIN: immutable(stable.__interface__)
 ORACLE: immutable(IOracle)
+MIN_COLLAT_RATIO: public(immutable(uint256))
 
 address2deposit: public(HashMap[address, uint256])
 address2minted: public(HashMap[address, uint256])
@@ -67,10 +69,19 @@ event Liquidate:
 
 
 @deploy
-def __init__(collateral: IERC20, stablecoin: stable.__interface__, oracle: IOracle):
+def __init__(
+    collateral: IERC20,
+    stablecoin: stable.__interface__,
+    oracle: IOracle,
+    min_collat_ratio: uint256,
+):
     assert collateral.address != empty(address)  # dev: engine: collateral is the zero address
     assert stablecoin.address != empty(address)  # dev: engine: stablecoin is the zero address
     assert oracle.address != empty(address)  # dev: engine: oracle is the zero address
+    assert (
+        min_collat_ratio >= MIN_COLLAT_RATIO_LOWER_BOUND
+        and min_collat_ratio <= MIN_COLLAT_RATIO_UPPER_BOUND
+    )  # dev: engine: invalid min collateral ratio
 
     collateral_decimals: uint8 = staticcall IERC20Detailed(collateral.address).decimals()
     assert collateral_decimals <= 18  # dev: engine: collateral decimals exceed 18
@@ -80,6 +91,7 @@ def __init__(collateral: IERC20, stablecoin: stable.__interface__, oracle: IOrac
     COLLATERAL_SCALE = 10 ** convert(18 - collateral_decimals, uint256)
     STABLECOIN = stablecoin
     ORACLE = oracle
+    MIN_COLLAT_RATIO = min_collat_ratio
 
 
 @external

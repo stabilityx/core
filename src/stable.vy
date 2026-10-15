@@ -48,10 +48,10 @@ EIP712_VERSION: constant(String[20]) = "1"
 def __init__(
     name_: String[25],
     symbol_: String[5],
-    decimals: uint8
+    decimals_: uint8,
 ):
     ow.__init__()
-    erc20.__init__(name_, symbol_, decimals, name_, EIP712_VERSION)
+    erc20.__init__(name_, symbol_, decimals_, name_, EIP712_VERSION)
 
 
 @external

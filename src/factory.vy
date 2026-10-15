@@ -73,7 +73,9 @@ def deploy(
     collateral: IERC20,
     name: String[25],
     symbol: String[5],
+    decimals: uint8,
     oracle: IOracle,
+    min_collat_ratio: uint256,
 ) -> (address, address):
     ow._check_owner()
     assert collateral.address != empty(address)  # dev: factory: collateral is the zero address
@@ -83,6 +85,7 @@ def deploy(
         STABLE_BLUEPRINT,
         name,
         symbol,
+        decimals,
         code_offset=3,
     )
     engine_addr: address = create_from_blueprint(
@@ -90,6 +93,7 @@ def deploy(
         collateral,
         stable_addr,
         oracle,
+        min_collat_ratio,
         code_offset=3,
     )
 
